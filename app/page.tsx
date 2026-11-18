@@ -1,9 +1,9 @@
-
+import { HomeBanner } from "@/components/home-banner"
 
 export default function Page() {
   return (
-    <div className="flex min-h-svh p-6">
-      
+    <div className="flex flex-col">
+      <HomeBanner />
     </div>
   )
 }
