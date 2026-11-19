@@ -13,6 +13,17 @@ export const auth = betterAuth({
         // Match the sign-up form's rule (better-auth defaults to 8).
         minPasswordLength: 6,
     },
+
+        user: {
+        additionalFields: {
+            role: {
+                type: ["customer", "admin"],
+                input: true,
+                defaultValue: "seeker",
+            },
+        },
+    },
+
      socialProviders: {
         google: { 
             clientId: process.env.GOOGLE_CLIENT_ID as string, 

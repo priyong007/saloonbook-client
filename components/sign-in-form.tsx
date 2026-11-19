@@ -24,6 +24,7 @@ import { GoogleIcon } from "@/components/google-icon"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
+import { authClient } from "@/lib/auth-client"
 
 // Change this to send signed-in users somewhere else (e.g. "/dashboard").
 const REDIRECT_AFTER_SIGN_IN = "/"
@@ -113,7 +114,7 @@ export function SignInForm() {
     }
 
     // TODO: replace with your auth provider, e.g.
-    // await authClient.signIn.email({ email: values.email, password: values.password })
+    await authClient.signIn.email({ email: values.email, password: values.password })
     console.log("Sign-in form data:", values)
 
     try {
