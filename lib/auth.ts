@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 
-const client = new MongoClient("mongodb://localhost:27017/database");
+const client = new MongoClient(process.env.BETTER_AUTH_DB_URI as string);
 const db = client.db('salonbookDb');
 
 export const auth = betterAuth({
@@ -10,6 +10,8 @@ export const auth = betterAuth({
     
     emailAndPassword: {
         enabled: true,
+        // Match the sign-up form's rule (better-auth defaults to 8).
+        minPasswordLength: 6,
     },
      socialProviders: {
         google: { 

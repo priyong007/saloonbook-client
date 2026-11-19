@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { authClient } from "@/lib/auth-client"
 
 // Change this to send newly registered users somewhere else (e.g. "/dashboard").
 const REDIRECT_AFTER_SIGN_UP = "/"
@@ -76,6 +77,16 @@ function isValidImageUrl(value: string) {
   } catch {
     return false
   }
+}
+
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () =>
+      reject(reader.error ?? new Error("Could not read the image file."))
+    reader.readAsDataURL(file)
+  })
 }
 
 export function SignUpForm() {
@@ -221,14 +232,33 @@ export function SignUpForm() {
         imageMode === "upload" ? imageFile : imageUrl.trim() || null,
     }
 
-    // TODO: send `values` to your auth provider, e.g.
-    // await authClient.signUp.email({ name: values.fullName, email: values.email, password: values.password, image: ... })
-    console.log("Sign-up form data:", values)
-
     try {
-      // Simulates the registration request so the success state and redirect
-      // can be tested before the real backend is wired up.
-      await new Promise((resolve) => setTimeout(resolve, 900))
+      // better-auth stores the avatar as a URL, so an uploaded file is converted
+      // to a data URL for now. In production, upload it to your storage provider
+      // and pass the returned URL instead.
+      const image =
+        values.profileImage instanceof File
+          ? await readFileAsDataUrl(values.profileImage)
+          : (values.profileImage ?? undefined)
+
+      // better-auth returns `{ data, error }` instead of throwing on API errors.
+      const { error } = await authClient.signUp.email({
+        name: values.fullName,
+        email: values.email,
+        password: values.password,
+        ...(image ? { image } : {}),
+      })
+
+      if (error) {
+        setFeedback({
+          type: "error",
+          message:
+            error.message ||
+            "We couldn't create your account. Please try again.",
+        })
+        setIsSubmitting(false)
+        return
+      }
 
       setFeedback({
         type: "success",
