@@ -16,12 +16,12 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { authClient } from "@/lib/auth-client"
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -35,6 +35,9 @@ export function SiteHeader() {
   function isActive(href: string) {
     return href === "/" ? pathname === "/" : pathname.startsWith(href)
   }
+
+  const { data: session, isPending } = authClient.useSession()
+  console.log("user session in navbar", session)
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -66,21 +69,37 @@ export function SiteHeader() {
         </NavigationMenu>
 
         <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant="ghost"
-            className="hidden md:inline-flex"
-            nativeButton={false}
-            render={<Link href="/sign-in" />}
-          >
-            Sign In
-          </Button>
-          <Button
-            className="hidden md:inline-flex"
-            nativeButton={false}
-            render={<Link href="/sign-up" />}
-          >
-            Sign Up
-          </Button>
+          {!isPending && !session?.user && (
+            <>
+              <Button
+                variant="ghost"
+                nativeButton={false}
+                render={<Link href="/sign-in" />}
+              >
+                Sign In
+              </Button>
+
+              <Button nativeButton={false} render={<Link href="/sign-up" />}>
+                Sign Up
+              </Button>
+            </>
+          )}
+
+          {session?.user && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium"> Welcome, {session.user.name}</span>
+
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  await authClient.signOut()
+                }}
+              >
+                Sign Out
+              </Button>
+            </div>
+          )}
+          {/* Sign In - Responsive */}
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger
@@ -95,6 +114,7 @@ export function SiteHeader() {
             >
               <MenuIcon />
             </SheetTrigger>
+
             <SheetContent side="right">
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-2">
@@ -103,6 +123,7 @@ export function SiteHeader() {
                   </span>
                   SalonBook
                 </SheetTitle>
+
                 <SheetDescription className="sr-only">
                   Site navigation
                 </SheetDescription>
@@ -126,26 +147,6 @@ export function SiteHeader() {
                   </Link>
                 ))}
               </nav>
-
-              <SheetFooter>
-                <Button
-                  variant="outline"
-                  nativeButton={false}
-                  render={
-                    <Link href="/sign-in" onClick={() => setOpen(false)} />
-                  }
-                >
-                  Sign In
-                </Button>
-                <Button
-                  nativeButton={false}
-                  render={
-                    <Link href="/sign-up" onClick={() => setOpen(false)} />
-                  }
-                >
-                  Sign Up
-                </Button>
-              </SheetFooter>
             </SheetContent>
           </Sheet>
         </div>
