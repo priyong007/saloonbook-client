@@ -37,6 +37,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 type ImageMode = "upload" | "url"
+type AccountRole = "customer" | "admin"
 type Feedback = {
   type: "success" | "error" | "info"
   message: string
@@ -46,6 +47,7 @@ export type SignUpFormValues = {
   fullName: string
   email: string
   password: string
+  role: AccountRole
   imageMode: ImageMode
   profileImage: File | string | null
 }
@@ -95,6 +97,7 @@ export function SignUpForm() {
   const [fullName, setFullName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
+  const [role, setRole] = React.useState<AccountRole>("customer")
   const [showPassword, setShowPassword] = React.useState(false)
 
   const [imageMode, setImageMode] = React.useState<ImageMode>("upload")
@@ -227,6 +230,7 @@ export function SignUpForm() {
       fullName: fullName.trim(),
       email: email.trim().toLowerCase(),
       password,
+      role,
       imageMode,
       profileImage:
         imageMode === "upload" ? imageFile : imageUrl.trim() || null,
@@ -246,6 +250,7 @@ export function SignUpForm() {
         name: values.fullName,
         email: values.email,
         password: values.password,
+        role: values.role,
         ...(image ? { image } : {}),
       })
 
@@ -401,6 +406,39 @@ export function SignUpForm() {
                 {errors.email}
               </p>
             )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <span className="text-sm leading-none font-medium">Account type</span>
+            <div
+              className="grid grid-cols-2 gap-2"
+              role="radiogroup"
+              aria-label="Account type"
+            >
+              <Button
+                type="button"
+                variant={role === "customer" ? "default" : "outline"}
+                className="w-full"
+                aria-pressed={role === "customer"}
+                onClick={() => setRole("customer")}
+                disabled={isSubmitting}
+              >
+                Customer
+              </Button>
+              <Button
+                type="button"
+                variant={role === "admin" ? "default" : "outline"}
+                className="w-full"
+                aria-pressed={role === "admin"}
+                onClick={() => setRole("admin")}
+                disabled={isSubmitting}
+              >
+                Admin
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Choose whether you&apos;re signing up as a customer or an admin.
+            </p>
           </div>
 
           <div className="flex flex-col gap-2">
