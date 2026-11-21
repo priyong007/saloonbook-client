@@ -23,10 +23,7 @@ import {
 import { cn } from "@/lib/utils"
 import { authClient } from "@/lib/auth-client"
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/services", label: "Browse Services" },
-]
+
 
 export function SiteHeader() {
   const pathname = usePathname()
@@ -37,7 +34,13 @@ export function SiteHeader() {
   }
 
   const { data: session, isPending } = authClient.useSession()
-  console.log("user session in navbar", session)
+  console.log("user session in navbar", session);
+
+  const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/services", label: "Browse Services" },
+  { href: `/dashboard/${session?.user?.role || 'customer'}` , label: "Dashboard" },
+]
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">

@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 
 import "./globals.css"
-import { SiteHeader } from "@/components/site-header"
+// import { SiteHeader } from "@/components/site-header"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 
@@ -40,7 +40,7 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <div className="flex min-h-svh flex-col">
-            <SiteHeader />
+            {/* <SiteHeader /> */}
             <main className="flex-1">
               {children}
               </main>

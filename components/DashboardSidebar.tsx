@@ -21,8 +21,11 @@ import {
   UserRound,
   Store,
   Users,
+  CreditCard,
+  PlusCircle,
   type LucideIcon,
 } from "lucide-react"
+import Link from "next/link"
 
 // Step 1: Role type
 type UserRole = "customer" | "admin"
@@ -45,17 +48,12 @@ const menuItemByRole: Record<UserRole, MenuItem[]> = {
     },
     {
       name: "My Appointments",
-      url: "/dashboard/my-appointments",
+      url: "/dashboard/customer/my-appointments",
       icon: CalendarDays,
     },
     {
-      name: "Browse Services",
-      url: "/dashboard/browse-services",
-      icon: Scissors,
-    },
-    {
       name: "My Profile",
-      url: "/dashboard/my-profile",
+      url: "/dashboard/customer/my-profile",
       icon: UserRound,
     },
     {
@@ -73,23 +71,33 @@ const menuItemByRole: Record<UserRole, MenuItem[]> = {
       icon: LayoutDashboard,
     },
     {
-      name: "Appointments",
-      url: "/dashboard/appointments",
-      icon: CalendarDays,
-    },
-    {
       name: "Manage Services",
-      url: "/dashboard/manage-services",
+      url: "/dashboard/admin/manage-services",
       icon: Scissors,
     },
     {
-      name: "Customers",
-      url: "/dashboard/customers",
+      name: "Add/Update Service",
+      url: "/dashboard/admin/add-services",
+      icon: PlusCircle,
+    },
+    {
+      name: "Manage Appointments",
+      url: "/dashboard/admin/appointments",
+      icon: CalendarDays,
+    },
+    {
+      name: "Manage Users",
+      url: "/dashboard/admin/users",
       icon: Users,
     },
     {
+      name: "Transactions",
+      url: "/dashboard/admin/transactions",
+      icon: CreditCard,
+    },
+    {
       name: "My Profile",
-      url: "/dashboard/my-profile",
+      url: "/dashboard/admin/my-profile",
       icon: UserRound,
     },
     {
@@ -121,7 +129,7 @@ export function DashboardSidebar() {
               .filter((item) => !item.isFooter)
               .map((item) => (
                 <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton render={<a href={item.url} />}>
+                  <SidebarMenuButton render={<Link href={item.url} />}>
                     <item.icon />
                     <span>{item.name}</span>
                   </SidebarMenuButton>
@@ -137,7 +145,7 @@ export function DashboardSidebar() {
             .filter((item) => item.isFooter)
             .map((item) => (
               <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton render={<a href={item.url} />}>
+                <SidebarMenuButton render={<Link href={item.url} />}>
                   <item.icon />
                   <span>{item.name}</span>
                 </SidebarMenuButton>
@@ -148,4 +156,5 @@ export function DashboardSidebar() {
     </Sidebar>
   )
 }
+
 
