@@ -1,3 +1,4 @@
+
 "use client"
 
 /* eslint-disable @next/next/no-img-element */
@@ -42,12 +43,12 @@ const statusItems = {
   inactive: "Inactive",
 }
 
-type FormValues = {
+export type FormValues = {
   name: string
   category: string
   description: string
-  price: string
-  duration: string
+  price: number
+  duration: number
   image: string
   status: ServiceStatus
 }
@@ -64,8 +65,8 @@ function getInitialValues(service?: Service): FormValues {
     name: service?.name ?? "",
     category: service?.category ?? "",
     description: service?.description ?? "",
-    price: service ? String(service.price) : "",
-    duration: service ? String(service.duration) : "",
+    price: service?.price ?? 0,
+    duration: service?.duration ?? 0,
     image: service?.image ?? "",
     status: service?.status ?? "active",
   }
@@ -73,8 +74,6 @@ function getInitialValues(service?: Service): FormValues {
 
 function validate(values: FormValues): FormErrors {
   const errors: FormErrors = {}
-  const price = Number(values.price)
-  const duration = Number(values.duration)
 
   if (!values.name.trim()) {
     errors.name = "Service name is required."
@@ -84,18 +83,30 @@ function validate(values: FormValues): FormErrors {
     errors.category = "Service category is required."
   }
 
-  if (!values.price.trim() || !Number.isFinite(price) || price <= 0) {
+  if (
+    !Number.isFinite(values.price) ||
+    values.price <= 0
+  ) {
     errors.price = "Price must be a positive number."
   }
 
-  if (!values.duration.trim() || !Number.isFinite(duration) || duration <= 0) {
+  if (
+    !Number.isFinite(values.duration) ||
+    values.duration <= 0
+  ) {
     errors.duration = "Duration must be a positive number."
   }
 
   return errors
 }
 
-function FieldError({ id, message }: { id: string; message?: string }) {
+function FieldError({
+  id,
+  message,
+}: {
+  id: string
+  message?: string
+}) {
   if (!message) return null
 
   return (
@@ -105,19 +116,31 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   )
 }
 
-export function ServiceForm({ service }: { service?: Service | null }) {
+export function ServiceForm({
+  service,
+}: {
+  service?: Service | null
+}) {
   const router = useRouter()
   const isEditing = Boolean(service)
 
   const [values, setValues] = React.useState<FormValues>(() =>
     getInitialValues(service ?? undefined)
   )
+
   const [errors, setErrors] = React.useState<FormErrors>({})
   const [feedback, setFeedback] = React.useState<Feedback | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-  function update<K extends keyof FormValues>(key: K, value: FormValues[K]) {
-    setValues((previous) => ({ ...previous, [key]: value }))
+  function update<K extends keyof FormValues>(
+    key: K,
+    value: FormValues[K]
+  ) {
+    setValues((previous) => ({
+      ...previous,
+      [key]: value,
+    }))
+
     setErrors((previous) => {
       if (!previous[key]) return previous
 
@@ -127,13 +150,16 @@ export function ServiceForm({ service }: { service?: Service | null }) {
     })
   }
 
-  function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleImageChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
     const file = event.target.files?.[0]
 
     if (!file) return
 
     if (!file.type.startsWith("image/")) {
       event.target.value = ""
+
       setErrors((previous) => ({
         ...previous,
         image: "Please choose an image file.",
@@ -143,6 +169,7 @@ export function ServiceForm({ service }: { service?: Service | null }) {
 
     if (file.size > MAX_IMAGE_SIZE) {
       event.target.value = ""
+
       setErrors((previous) => ({
         ...previous,
         image: "The image must be 5 MB or smaller.",
@@ -151,17 +178,26 @@ export function ServiceForm({ service }: { service?: Service | null }) {
     }
 
     const reader = new FileReader()
-    reader.onload = () => update("image", String(reader.result))
-    reader.onerror = () =>
+
+    reader.onload = () => {
+      update("image", String(reader.result))
+    }
+
+    reader.onerror = () => {
       setErrors((previous) => ({
         ...previous,
         image: "Could not read the image. Please try another file.",
       }))
+    }
+
     reader.readAsDataURL(file)
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault()
+
     if (isSubmitting) return
 
     setFeedback(null)
@@ -183,8 +219,8 @@ export function ServiceForm({ service }: { service?: Service | null }) {
       name: values.name.trim(),
       category: values.category.trim(),
       description: values.description.trim(),
-      price: Number(values.price),
-      duration: Number(values.duration),
+      price: values.price,
+      duration: values.duration,
       image: values.image,
       status: values.status,
     }
@@ -193,15 +229,21 @@ export function ServiceForm({ service }: { service?: Service | null }) {
       const result = await saveService(service?.id ?? null, input)
 
       if (!result.ok) {
-        setFeedback({ type: "error", message: result.error })
+        setFeedback({
+          type: "error",
+          message: result.error,
+        })
         setIsSubmitting(false)
         return
       }
 
       setFeedback({
         type: "success",
-        message: isEditing ? "Service updated." : "Service added.",
+        message: isEditing
+          ? "Service updated."
+          : "Service added.",
       })
+
       router.push(MANAGE_SERVICES_PATH)
       router.refresh()
     } catch (error) {
@@ -212,6 +254,7 @@ export function ServiceForm({ service }: { service?: Service | null }) {
             ? error.message
             : "Something went wrong. Please try again.",
       })
+
       setIsSubmitting(false)
     }
   }
@@ -222,6 +265,7 @@ export function ServiceForm({ service }: { service?: Service | null }) {
         <CardTitle className="font-heading text-xl">
           {isEditing ? "Update Service" : "Add Service"}
         </CardTitle>
+
         <CardDescription>
           {isEditing
             ? "Update the details for this salon service."
@@ -237,16 +281,24 @@ export function ServiceForm({ service }: { service?: Service | null }) {
         >
           {feedback && (
             <Alert
-              variant={feedback.type === "error" ? "destructive" : "default"}
+              variant={
+                feedback.type === "error"
+                  ? "destructive"
+                  : "default"
+              }
             >
               {feedback.type === "error" ? (
                 <CircleAlertIcon />
               ) : (
                 <CircleCheckIcon className="text-emerald-600 dark:text-emerald-400" />
               )}
+
               <AlertTitle>
-                {feedback.type === "error" ? "Could not save service" : "Saved"}
+                {feedback.type === "error"
+                  ? "Could not save service"
+                  : "Saved"}
               </AlertTitle>
+
               <AlertDescription className="text-current opacity-90">
                 {feedback.message}
               </AlertDescription>
@@ -255,45 +307,73 @@ export function ServiceForm({ service }: { service?: Service | null }) {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="service-name">Service Name</Label>
+              <Label htmlFor="service-name">
+                Service Name
+              </Label>
+
               <Input
                 id="service-name"
                 name="name"
                 placeholder="e.g. Classic Haircut"
                 value={values.name}
-                onChange={(event) => update("name", event.target.value)}
+                onChange={(event) =>
+                  update("name", event.target.value)
+                }
                 aria-invalid={Boolean(errors.name)}
                 aria-describedby={
                   errors.name ? "service-name-error" : undefined
                 }
               />
-              <FieldError id="service-name-error" message={errors.name} />
+
+              <FieldError
+                id="service-name-error"
+                message={errors.name}
+              />
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="service-category">Service Category</Label>
+              <Label htmlFor="service-category">
+                Service Category
+              </Label>
 
               <Select
-  value={values.category}
-  onValueChange={(value) => {
-    if (value) update("category", value)
-  }}
->
-  <SelectTrigger className="w-full">
-    <SelectValue placeholder="Select category" />
-  </SelectTrigger>
+                value={values.category}
+                onValueChange={(value) => {
+                  if (value) update("category", value)
+                }}
+              >
+                <SelectTrigger
+                  id="service-category"
+                  className="w-full"
+                  aria-invalid={Boolean(errors.category)}
+                >
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
 
-  <SelectContent>
-    <SelectItem value="haircut">Haircut & Styling</SelectItem>
-    <SelectItem value="hair-color">Hair Coloring</SelectItem>
-    <SelectItem value="hair-treatment">Hair Treatment</SelectItem>
-    <SelectItem value="facial-skincare">Facial & Skincare</SelectItem>
-    <SelectItem value="makeup">Makeup</SelectItem>
-    <SelectItem value="manicure-pedicure">Manicure & Pedicure</SelectItem>
-    <SelectItem value="spa-massage">Spa & Massage</SelectItem>
-  </SelectContent>
-</Select>
-
+                <SelectContent>
+                  <SelectItem value="haircut">
+                    Haircut & Styling
+                  </SelectItem>
+                  <SelectItem value="hair-color">
+                    Hair Coloring
+                  </SelectItem>
+                  <SelectItem value="hair-treatment">
+                    Hair Treatment
+                  </SelectItem>
+                  <SelectItem value="facial-skincare">
+                    Facial & Skincare
+                  </SelectItem>
+                  <SelectItem value="makeup">
+                    Makeup
+                  </SelectItem>
+                  <SelectItem value="manicure-pedicure">
+                    Manicure & Pedicure
+                  </SelectItem>
+                  <SelectItem value="spa-massage">
+                    Spa & Massage
+                  </SelectItem>
+                </SelectContent>
+              </Select>
 
               <FieldError
                 id="service-category-error"
@@ -303,15 +383,21 @@ export function ServiceForm({ service }: { service?: Service | null }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="service-description">Description</Label>
+            <Label htmlFor="service-description">
+              Description
+            </Label>
+
             <Textarea
               id="service-description"
               name="description"
               placeholder="Describe what this service includes."
               rows={4}
               value={values.description}
-              onChange={(event) => update("description", event.target.value)}
+              onChange={(event) =>
+                update("description", event.target.value)
+              }
             />
+
             <p className="text-xs text-muted-foreground">
               Optional, but helpful for customers.
             </p>
@@ -319,7 +405,10 @@ export function ServiceForm({ service }: { service?: Service | null }) {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="service-price">Price</Label>
+              <Label htmlFor="service-price">
+                Price
+              </Label>
+
               <Input
                 id="service-price"
                 name="price"
@@ -328,20 +417,32 @@ export function ServiceForm({ service }: { service?: Service | null }) {
                 min="0.01"
                 step="0.01"
                 placeholder="25.00"
-                value={values.price}
-                onChange={(event) => update("price", event.target.value)}
+                value={values.price || ""}
+                onChange={(event) =>
+                  update(
+                    "price",
+                    event.target.value === ""
+                      ? 0
+                      : Number(event.target.value)
+                  )
+                }
                 aria-invalid={Boolean(errors.price)}
                 aria-describedby={
                   errors.price ? "service-price-error" : undefined
                 }
               />
-              <FieldError id="service-price-error" message={errors.price} />
+
+              <FieldError
+                id="service-price-error"
+                message={errors.price}
+              />
             </div>
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="service-duration">
                 Estimated Duration (minutes)
               </Label>
+
               <Input
                 id="service-duration"
                 name="duration"
@@ -350,13 +451,23 @@ export function ServiceForm({ service }: { service?: Service | null }) {
                 min="1"
                 step="1"
                 placeholder="30"
-                value={values.duration}
-                onChange={(event) => update("duration", event.target.value)}
+                value={values.duration || ""}
+                onChange={(event) =>
+                  update(
+                    "duration",
+                    event.target.value === ""
+                      ? 0
+                      : Number(event.target.value)
+                  )
+                }
                 aria-invalid={Boolean(errors.duration)}
                 aria-describedby={
-                  errors.duration ? "service-duration-error" : undefined
+                  errors.duration
+                    ? "service-duration-error"
+                    : undefined
                 }
               />
+
               <FieldError
                 id="service-duration-error"
                 message={errors.duration}
@@ -365,7 +476,10 @@ export function ServiceForm({ service }: { service?: Service | null }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="service-image">Service Image</Label>
+            <Label htmlFor="service-image">
+              Service Image
+            </Label>
+
             {values.image ? (
               <div className="overflow-hidden rounded-lg border">
                 <img
@@ -380,6 +494,7 @@ export function ServiceForm({ service }: { service?: Service | null }) {
                 <p className="text-sm">No image selected</p>
               </div>
             )}
+
             <Input
               id="service-image"
               name="image"
@@ -388,35 +503,56 @@ export function ServiceForm({ service }: { service?: Service | null }) {
               onChange={handleImageChange}
               aria-invalid={Boolean(errors.image)}
               aria-describedby={
-                errors.image ? "service-image-error" : "service-image-hint"
+                errors.image
+                  ? "service-image-error"
+                  : "service-image-hint"
               }
             />
+
             <p
               id="service-image-hint"
               className="text-xs text-muted-foreground"
             >
               Upload a PNG, JPG or WebP image up to 5 MB.
             </p>
-            <FieldError id="service-image-error" message={errors.image} />
+
+            <FieldError
+              id="service-image-error"
+              message={errors.image}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="service-status">Service Status</Label>
+            <Label htmlFor="service-status">
+              Service Status
+            </Label>
+
             <Select
               items={statusItems}
               value={values.status}
               onValueChange={(value) => {
-                if (value) update("status", value as ServiceStatus)
+                if (value) {
+                  update("status", value as ServiceStatus)
+                }
               }}
             >
-              <SelectTrigger id="service-status" className="w-full">
+              <SelectTrigger
+                id="service-status"
+                className="w-full"
+              >
                 <SelectValue />
               </SelectTrigger>
+
               <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="active">
+                  Active
+                </SelectItem>
+                <SelectItem value="inactive">
+                  Inactive
+                </SelectItem>
               </SelectContent>
             </Select>
+
             <p className="text-xs text-muted-foreground">
               Active services are available to customers.
             </p>
@@ -430,7 +566,11 @@ export function ServiceForm({ service }: { service?: Service | null }) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? (
                 <>
                   <Loader2Icon className="animate-spin" />
