@@ -13,6 +13,13 @@ export const createServices = async(data:FormValues) => {
     return res.json()
 }
 
+export const deleteService = async (serviceid: string) => {
+    const res = await fetch(`${BASE_URL}/services/${serviceid}`,{
+        method: "DELETE",
+    });
+    return res.json()
+}
+
 
 
 

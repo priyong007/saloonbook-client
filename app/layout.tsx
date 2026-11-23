@@ -5,6 +5,8 @@ import "./globals.css"
 // import { SiteHeader } from "@/components/site-header"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
+import { Toaster } from "@/components/ui/sonner"
+
 
 export const metadata: Metadata = {
   title: {
@@ -43,6 +45,7 @@ export default function RootLayout({
             {/* <SiteHeader /> */}
             <main className="flex-1">
               {children}
+              <Toaster/>
               </main>
           </div>
         </ThemeProvider>

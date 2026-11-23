@@ -226,7 +226,7 @@ export function ServiceForm({
     }
 
     try {
-      const result = await saveService(service?.id ?? null, input)
+      const result = await saveService(service?._id ?? null, input)
 
       if (!result.ok) {
         setFeedback({

@@ -1,7 +1,8 @@
 export type ServiceStatus = "active" | "inactive"
 
 export type Service = {
-  id: string
+    _id: string
+  id?: number
   name: string
   category: string
   description: string
@@ -9,8 +10,8 @@ export type Service = {
   duration: number
   image: string
   status: ServiceStatus
-  createdAt: string
-  updatedAt: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type ServiceInput = {
