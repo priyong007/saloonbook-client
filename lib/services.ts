@@ -11,15 +11,15 @@ type ServiceDocument = {
   duration: number
   image: string
   status: ServiceStatus
-  createdAt: Date
-  updatedAt: Date
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 const services = db.collection<ServiceDocument>("services")
 
 function toService(document: WithId<ServiceDocument>): Service {
   return {
-    id: document._id.toString(),
+    _id: document._id.toString(),
     name: document.name,
     category: document.category,
     description: document.description,
@@ -27,13 +27,22 @@ function toService(document: WithId<ServiceDocument>): Service {
     duration: document.duration,
     image: document.image,
     status: document.status,
-    createdAt: document.createdAt.toISOString(),
-    updatedAt: document.updatedAt.toISOString(),
+    createdAt: document.createdAt?.toISOString(),
+    updatedAt: document.updatedAt?.toISOString(),
   }
 }
 
 export async function getServices(): Promise<Service[]> {
   const documents = await services.find().sort({ createdAt: -1 }).toArray()
+  return documents.map(toService)
+}
+
+export async function getActiveServices(): Promise<Service[]> {
+  const documents = await services
+    .find({ status: "active" })
+    .sort({ createdAt: -1, _id: -1 })
+    .toArray()
+
   return documents.map(toService)
 }
 

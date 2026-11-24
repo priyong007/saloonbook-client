@@ -34,11 +34,11 @@ export function SiteHeader() {
   }
 
   const { data: session, isPending } = authClient.useSession()
-  console.log("user session in navbar", session);
+  // console.log("user session in navbar", session);
 
   const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/services", label: "Browse Services" },
+  { href: "/browse-services", label: "Browse Services" },
   { href: `/dashboard/${session?.user?.role || 'customer'}` , label: "Dashboard" },
 ]
 
