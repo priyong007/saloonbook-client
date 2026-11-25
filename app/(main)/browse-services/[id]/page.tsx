@@ -1,6 +1,9 @@
+
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { headers } from "next/headers"
+
 import {
   ArrowLeft,
   CalendarDays,
@@ -13,6 +16,8 @@ import {
 } from "lucide-react"
 
 import { getServiceById } from "@/lib/api/services"
+import { auth } from "@/lib/auth"
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,15 +35,30 @@ const ServicesDetailsPage = async ({
   params: Promise<{ id: string }>
 }) => {
   const { id } = await params
+
+  // Get service details
   const service = await getServiceById(id)
 
   if (!service || service.status !== "active") {
     notFound()
   }
 
+  // Check logged-in user
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+  // Booking URL
+  const bookingUrl = session?.user
+    ? `/book-appointment/${service._id}`
+    : `/sign-in?callbackUrl=${encodeURIComponent(
+        `/book-appointment/${service._id}`
+      )}`
+
   return (
     <main className="min-h-screen bg-[#faf9f7]">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+
         {/* Back Navigation */}
         <Link
           href="/browse-services"
@@ -49,8 +69,10 @@ const ServicesDetailsPage = async ({
         </Link>
 
         <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px] xl:gap-12">
+
           {/* Left Content */}
           <section className="min-w-0 space-y-8">
+
             {/* Service Image */}
             <div className="group relative aspect-16/10 overflow-hidden rounded-3xl bg-muted shadow-sm">
               <Image
@@ -64,7 +86,7 @@ const ServicesDetailsPage = async ({
 
               <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-black/10" />
 
-              <div className="absolute top-5 left-5">
+              <div className="absolute left-5 top-5">
                 <Badge className="border border-white/30 bg-white/95 px-4 py-1.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-white">
                   {service.category}
                 </Badge>
@@ -104,6 +126,7 @@ const ServicesDetailsPage = async ({
 
               {/* Price & Duration */}
               <div className="grid grid-cols-2 gap-4 sm:max-w-md">
+
                 <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                     <Tag className="h-5 w-5 text-primary" />
@@ -131,6 +154,7 @@ const ServicesDetailsPage = async ({
                     {service.duration} min
                   </p>
                 </div>
+
               </div>
             </div>
 
@@ -149,6 +173,7 @@ const ServicesDetailsPage = async ({
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
+
                 <Card className="border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
                   <CardContent className="flex items-center gap-4 p-5">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
@@ -156,7 +181,10 @@ const ServicesDetailsPage = async ({
                     </div>
 
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground">Category</p>
+                      <p className="text-xs text-muted-foreground">
+                        Category
+                      </p>
+
                       <h3 className="mt-1 font-semibold text-gray-900">
                         {service.category}
                       </h3>
@@ -174,12 +202,14 @@ const ServicesDetailsPage = async ({
                       <p className="text-xs text-muted-foreground">
                         Estimated Time
                       </p>
+
                       <h3 className="mt-1 font-semibold text-gray-900">
                         {service.duration} Minutes
                       </h3>
                     </div>
                   </CardContent>
                 </Card>
+
               </div>
             </div>
 
@@ -200,11 +230,13 @@ const ServicesDetailsPage = async ({
                 </p>
               </div>
             </div>
+
           </section>
 
           {/* Right Booking Sidebar */}
           <aside className="lg:sticky lg:top-24">
             <Card className="overflow-hidden rounded-3xl border-gray-100 bg-[#f8f3ed] shadow-lg shadow-gray-200/50">
+
               <CardHeader className="space-y-3 border-b border-gray-100 bg-white p-6 sm:p-7">
                 <Badge className="w-fit bg-primary/10 text-primary hover:bg-primary/10">
                   <CalendarDays className="mr-1 h-3.5 w-3.5" />
@@ -222,6 +254,7 @@ const ServicesDetailsPage = async ({
               </CardHeader>
 
               <CardContent className="space-y-6 p-6 sm:p-7">
+
                 {/* Selected Service */}
                 <div className="space-y-3">
                   <p className="text-sm font-semibold text-gray-900">
@@ -260,7 +293,9 @@ const ServicesDetailsPage = async ({
                   </h3>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Service Price</span>
+                    <span className="text-muted-foreground">
+                      Service Price
+                    </span>
 
                     <span className="font-semibold text-gray-900">
                       ৳{service.price}
@@ -268,7 +303,9 @@ const ServicesDetailsPage = async ({
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Duration</span>
+                    <span className="text-muted-foreground">
+                      Duration
+                    </span>
 
                     <span className="font-medium text-gray-900">
                       {service.duration} minutes
@@ -294,12 +331,12 @@ const ServicesDetailsPage = async ({
 
                 {/* Booking Button */}
                 <Button
-                  asChild
+                //   asChild
                   size="lg"
                   className="h-12 w-full rounded-xl text-sm font-semibold shadow-md"
                 >
                   <Link
-                    href={`/book-appointment/${service._id}`}
+                    href={bookingUrl}
                     className="flex items-center justify-center gap-2"
                   >
                     <CalendarDays className="h-5 w-5 shrink-0" />
@@ -312,9 +349,11 @@ const ServicesDetailsPage = async ({
                   <ShieldCheck className="h-4 w-4 text-green-600" />
                   Secure and easy appointment booking
                 </div>
+
               </CardContent>
             </Card>
           </aside>
+
         </div>
       </div>
     </main>

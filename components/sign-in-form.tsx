@@ -1,8 +1,10 @@
+
 "use client"
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+
 import {
   CircleAlertIcon,
   CircleCheckIcon,
@@ -26,8 +28,6 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { authClient } from "@/lib/auth-client"
 
-// Change this to send signed-in users somewhere else (e.g. "/dashboard").
-const REDIRECT_AFTER_SIGN_IN = "/"
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 type Feedback = {
@@ -42,6 +42,10 @@ export type SignInFormValues = {
 
 export function SignInForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Get callbackUrl from URL
+  const callbackUrl = searchParams.get("callbackUrl") || "/"
 
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
@@ -54,8 +58,10 @@ export function SignInForm() {
   function clearError(key: string) {
     setErrors((previous) => {
       if (!previous[key]) return previous
+
       const next = { ...previous }
       delete next[key]
+
       return next
     })
   }
@@ -77,8 +83,8 @@ export function SignInForm() {
   }
 
   function handleGoogleSignIn() {
-    // TODO: replace with your provider, e.g. authClient.signIn.social({ provider: "google" })
     console.log("Google sign-in clicked")
+
     setFeedback({
       type: "info",
       message:
@@ -86,11 +92,15 @@ export function SignInForm() {
     })
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault()
+
     if (isSubmitting) return
 
     setFeedback(null)
+
     const nextErrors = validate()
     setErrors(nextErrors)
 
@@ -99,10 +109,13 @@ export function SignInForm() {
         type: "error",
         message: "Please fix the highlighted fields and try again.",
       })
+
       const firstInvalidField = Object.keys(nextErrors)[0]
+
       requestAnimationFrame(() =>
         document.getElementById(`signin-${firstInvalidField}`)?.focus()
       )
+
       return
     }
 
@@ -113,20 +126,40 @@ export function SignInForm() {
       password,
     }
 
-    // TODO: replace with your auth provider, e.g.
-    await authClient.signIn.email({ email: values.email, password: values.password })
-    console.log("Sign-in form data:", values)
-
     try {
-      // Simulates the login request so the success state and redirect can be
-      // tested before the real backend is wired up.
-      await new Promise((resolve) => setTimeout(resolve, 900))
+      // Better Auth login
+      const result = await authClient.signIn.email({
+        email: values.email,
+        password: values.password,
+      })
+
+      if (result.error) {
+        setFeedback({
+          type: "error",
+          message:
+            result.error.message || "Invalid email or password.",
+        })
+
+        setIsSubmitting(false)
+        return
+      }
 
       setFeedback({
         type: "success",
-        message: "You're signed in. Redirecting…",
+        message: "You're signed in. Redirecting...",
       })
-      window.setTimeout(() => router.replace(REDIRECT_AFTER_SIGN_IN), 1200)
+
+      // Safe redirect
+      const safeCallbackUrl =
+        callbackUrl.startsWith("/") &&
+        !callbackUrl.startsWith("//")
+          ? callbackUrl
+          : "/"
+
+      // Redirect to requested page
+      router.replace(safeCallbackUrl)
+      router.refresh()
+
     } catch (error) {
       setFeedback({
         type: "error",
@@ -135,6 +168,7 @@ export function SignInForm() {
             ? error.message
             : "Something went wrong. Please try again.",
       })
+
       setIsSubmitting(false)
     }
   }
@@ -154,12 +188,15 @@ export function SignInForm() {
         <h1 className="font-heading text-xl leading-snug font-medium">
           Welcome back
         </h1>
+
         <CardDescription>
           Sign in to book and manage your appointments.
         </CardDescription>
       </CardHeader>
 
       <CardContent className="flex flex-col gap-5">
+
+        {/* Google Sign In */}
         <Button
           type="button"
           variant="outline"
@@ -178,6 +215,7 @@ export function SignInForm() {
           >
             <span className="w-full border-t" />
           </div>
+
           <div className="relative flex justify-center">
             <span className="bg-card px-2 text-xs text-muted-foreground">
               or sign in with email
@@ -185,14 +223,21 @@ export function SignInForm() {
           </div>
         </div>
 
+        {/* Sign In Form */}
         <form
           noValidate
           onSubmit={handleSubmit}
           className="flex flex-col gap-4"
         >
+
+          {/* Feedback */}
           {feedback && (
             <Alert
-              variant={feedback.type === "error" ? "destructive" : "default"}
+              variant={
+                feedback.type === "error"
+                  ? "destructive"
+                  : "default"
+              }
               className={cn(
                 feedback.type === "success" &&
                   "border-emerald-600/30 text-emerald-700 dark:border-emerald-500/40 dark:text-emerald-400",
@@ -201,6 +246,7 @@ export function SignInForm() {
               )}
             >
               {feedbackIcon}
+
               <AlertTitle>
                 {feedback.type === "success"
                   ? "Signed in successfully"
@@ -208,14 +254,19 @@ export function SignInForm() {
                     ? "Couldn't sign you in"
                     : "Google sign-in"}
               </AlertTitle>
+
               <AlertDescription className="text-current opacity-90">
                 {feedback.message}
               </AlertDescription>
             </Alert>
           )}
 
+          {/* Email */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="signin-email">Email</Label>
+            <Label htmlFor="signin-email">
+              Email
+            </Label>
+
             <Input
               id="signin-email"
               name="email"
@@ -229,17 +280,27 @@ export function SignInForm() {
                 clearError("email")
               }}
               aria-invalid={Boolean(errors.email)}
-              aria-describedby={errors.email ? "signin-email-error" : undefined}
+              aria-describedby={
+                errors.email ? "signin-email-error" : undefined
+              }
             />
+
             {errors.email && (
-              <p id="signin-email-error" className="text-xs text-destructive">
+              <p
+                id="signin-email-error"
+                className="text-xs text-destructive"
+              >
                 {errors.email}
               </p>
             )}
           </div>
 
+          {/* Password */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="signin-password">Password</Label>
+            <Label htmlFor="signin-password">
+              Password
+            </Label>
+
             <div className="relative">
               <Input
                 id="signin-password"
@@ -255,21 +316,33 @@ export function SignInForm() {
                 }}
                 aria-invalid={Boolean(errors.password)}
                 aria-describedby={
-                  errors.password ? "signin-password-error" : undefined
+                  errors.password
+                    ? "signin-password-error"
+                    : undefined
                 }
               />
+
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-sm"
                 className="absolute top-0.5 right-0.5"
-                onClick={() => setShowPassword((visible) => !visible)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                onClick={() =>
+                  setShowPassword((visible) => !visible)
+                }
+                aria-label={
+                  showPassword ? "Hide password" : "Show password"
+                }
                 aria-pressed={showPassword}
               >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                {showPassword ? (
+                  <EyeOffIcon />
+                ) : (
+                  <EyeIcon />
+                )}
               </Button>
             </div>
+
             {errors.password && (
               <p
                 id="signin-password-error"
@@ -280,11 +353,16 @@ export function SignInForm() {
             )}
           </div>
 
-          <Button type="submit" className="mt-1 w-full" disabled={isSubmitting}>
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            className="mt-1 w-full"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? (
               <>
                 <Loader2Icon className="animate-spin" />
-                Signing in…
+                Signing in...
               </>
             ) : (
               "Sign in"
@@ -293,6 +371,7 @@ export function SignInForm() {
 
           <p className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
+
             <Link
               href="/sign-up"
               className="font-medium text-foreground underline-offset-4 hover:underline"
@@ -300,6 +379,7 @@ export function SignInForm() {
               Sign up
             </Link>
           </p>
+
         </form>
       </CardContent>
     </Card>
