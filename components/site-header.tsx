@@ -23,8 +23,6 @@ import {
 import { cn } from "@/lib/utils"
 import { authClient } from "@/lib/auth-client"
 
-
-
 export function SiteHeader() {
   const pathname = usePathname()
   const [open, setOpen] = React.useState(false)
@@ -37,10 +35,18 @@ export function SiteHeader() {
   // console.log("user session in navbar", session);
 
   const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/browse-services", label: "Browse Services" },
-  { href: `/dashboard/${session?.user?.role || 'customer'}` , label: "Dashboard" },
-]
+    { href: "/", label: "Home" },
+    { href: "/browse-services", label: "Browse Services" },
+
+    ...(session?.user
+      ? [
+          {
+            href: `/dashboard/${session.user.role || "customer"}`,
+            label: "Dashboard",
+          },
+        ]
+      : []),
+  ]
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -90,7 +96,10 @@ export function SiteHeader() {
 
           {session?.user && (
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium"> Welcome, {session.user.name}</span>
+              <span className="text-sm font-medium">
+                {" "}
+                Welcome, {session.user.name}
+              </span>
 
               <Button
                 variant="outline"
