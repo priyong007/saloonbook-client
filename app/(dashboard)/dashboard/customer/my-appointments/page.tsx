@@ -9,7 +9,6 @@ import {
   Clock,
   Loader2,
   Scissors,
-  Eye,
   XCircle,
   CreditCard,
   RefreshCw,
@@ -475,11 +474,11 @@ const handleCancelAppointment = async (appointment: Appointment) => {
                     {/* Actions */}
                     <div className="flex flex-wrap items-center gap-2 border-t border-gray-100 pt-3 sm:col-span-2 xl:col-span-1 xl:border-0 xl:pt-0">
                       <Link
-                        href={`/dashboard/my-appointments/${appointment._id}`}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium whitespace-nowrap text-gray-700 transition hover:bg-gray-50"
+                        href={`/payment`}
+                        className="inline-flex items-center gap-1.5 rounded-sm border border-gray-200 px-3 py-2 text-sm font-medium whitespace-nowrap text-purple-700 transition hover:bg-gray-50"
                       >
-                        <Eye size={15} />
-                        Details
+                        {/* <Eye size={15} /> */}
+                        Pay Now
                       </Link>
 
                       {canCancel && (
