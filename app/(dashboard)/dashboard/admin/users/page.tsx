@@ -1,6 +1,9 @@
+import { getUsers } from '@/lib/api/user';
 import React from 'react';
 
-const UsersPage = () => {
+const AdminUsersPage = async() => {
+
+    const users = await getUsers()
     return (
         <div>
             <h2>users page</h2>
@@ -8,4 +11,4 @@ const UsersPage = () => {
     );
 };
 
-export default UsersPage;
+export default AdminUsersPage;

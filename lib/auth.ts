@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { db, mongoClient as client } from "@/lib/db";
-
+import { admin } from "better-auth/plugins"
 export const auth = betterAuth({
 
     
@@ -29,8 +29,14 @@ export const auth = betterAuth({
         },
       },
 
+       plugins: [
+        admin() 
+    ],
+
   database: mongodbAdapter(db, {
     // Optional: if you don't provide a client, database transactions won't be enabled.
     client
   }),
+
+  
 });
